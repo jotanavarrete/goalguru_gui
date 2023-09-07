@@ -1,4 +1,5 @@
 import streamlit as st
+from utils.plots import show_probabilities_bar
 
 '''
 # Welcome to GoalGuru ⚽!
@@ -108,28 +109,82 @@ matches = {
         },
 }
 
-# to show
+# API predict(match_id, dataset)
+# returns a prediction with the following structure
+prediction = {
+    'outcome': 1,
+    'probabilities': [0.56, 0.24, 0.20]
+}
+
+outcome_mapper = {
+    1: 'local wins',
+    0: 'teams draw',
+    -1: 'away wins'
+}
+
+# API get_result(match_id, dataset)
+# returns the result of a given match with the following structure
+# (to change for the real team names)
+
+result = {
+    'result': 'local team 2 - 1 away team'
+}
+
+# session_state
+if 'clicked' not in st.session_state:
+    st.session_state.clicked = False
+
+def click_button():
+    st.session_state.clicked = True
+
+def unclick_button():
+    st.session_state.clicked = False
+
+# to select
 
 competition_selected = st.selectbox('Select a competition',
                                     competitions,
-                                    format_func=lambda x: x['name'])
+                                    format_func=lambda x: x['name'],
+                                    on_change=unclick_button)
 
 st.write(f'you selected {competition_selected}')
 
 season_selected = st.selectbox('Select a season',
                                seasons[competition_selected['competition_id']],
-                               format_func=lambda x: x['name'])
+                               format_func=lambda x: x['name'],
+                               on_change=unclick_button)
 
 st.write(f'you selected {season_selected}')
 
 matchweek_selected = st.selectbox('Select a matchweek (round)',
                                season_selected['matchweeks'],
-                               format_func=lambda x: f'Round {x}')
+                               format_func=lambda x: f'Round {x}',
+                               on_change=unclick_button)
 
 st.write(f'you selected {matchweek_selected}')
 
 match_selected = st.selectbox('Select a match',
                                matches[competition_selected['competition_id']][season_selected['season_id']][0],
-                               format_func=lambda x: x['name'])
+                               format_func=lambda x: x['name'],
+                               on_change=unclick_button)
 
 st.write(f'you selected {match_selected}')
+
+# to predict
+
+pred_button = st.button('Make a prediction', on_click=click_button)
+
+if st.session_state.clicked:
+    st.markdown(f'''### The model predicts that __{outcome_mapper[prediction["outcome"]]}__ with the following probabilities:''')
+
+    fig = show_probabilities_bar(prediction)
+
+    st.pyplot(fig)
+
+    result_button = st.button('Show results')
+
+    if result_button:
+
+        st.markdown('''#### The actual result of the match was:''')
+
+        st.markdown(f'''#### {result["result"]}''')
