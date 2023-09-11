@@ -176,13 +176,23 @@ def get_matches(from_seasons=True):
     st.session_state.matches = matches
     st.session_state.match_selected = st.session_state.matches[0]
 
+def predict():
+    click_button()
+    url = base_url + 'predict'
+    params = {'match_id': st.session_state.match_selected['match_id'],
+              'dataset': st.session_state.season_selected['dataset']}
+    prediction = requests.get(url, params=params).json()
+    # print('\npredict called', matches, '\n')
+    st.session_state.prediction = prediction
+
 
 if 'competitions' not in st.session_state:
     st.session_state.competitions = get_competitions()
 # st.write(st.session_state.competitions)
 
 if 'competition_selected' not in st.session_state:
-    st.session_state.competition_selected = st.session_state.competitions[0]
+    # assigned to 7 just to run locally
+    st.session_state.competition_selected = st.session_state.competitions[7]
 # st.write(st.session_state.competition_selected)
 
 if 'seasons' not in st.session_state:
@@ -204,6 +214,14 @@ if 'matches' not in st.session_state:
 if 'match_selected' not in st.session_state:
     st.session_state.match_selected = st.session_state.matches[0]
 # st.write(st.session_state.match_selected)
+
+if 'prediction' not in st.session_state:
+    # dummy prediction
+    st.session_state.prediction = {
+    'outcome': 1,
+    'probabilities': [0.56, 0.24, 0.20]
+    }
+# st.write(st.session_state.prediction)
 
 
 
@@ -246,7 +264,7 @@ match_selected = st.selectbox('Select a match',
 
 # to predict
 
-pred_button = st.button('Make a prediction', on_click=click_button)
+pred_button = st.button('Make a prediction', on_click=predict)
 
 if st.session_state.clicked:
 
@@ -256,9 +274,9 @@ if st.session_state.clicked:
     -1: f'{st.session_state.match_selected["away_team"]} wins'
     }
 
-    st.markdown(f'''### The model predicts that __{outcome_mapper[prediction["outcome"]]}__ with the following probabilities:''')
+    st.markdown(f'''### The model predicts that __{outcome_mapper[st.session_state.prediction["outcome"]]}__ with the following probabilities:''')
 
-    fig = show_probabilities_bar(prediction, outcome_mapper.values())
+    fig = show_probabilities_bar(st.session_state.prediction, outcome_mapper.values())
 
     st.pyplot(fig)
 
