@@ -268,4 +268,4 @@ if st.session_state.clicked:
 
         st.markdown('''#### The actual result of the match was:''')
 
-        st.markdown(f'''#### {result["result"]}''')
+        st.markdown(f'''#### {st.session_state.match_selected["result"]}''')
