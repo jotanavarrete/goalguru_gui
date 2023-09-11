@@ -118,12 +118,6 @@ prediction = {
     'probabilities': [0.56, 0.24, 0.20]
 }
 
-# this is not for the API
-outcome_mapper = {
-    1: 'local wins',
-    0: 'teams draw',
-    -1: 'away wins'
-}
 
 # API get_result(match_id, dataset)
 # returns the result of a given match with the following structure
@@ -132,6 +126,9 @@ outcome_mapper = {
 result = {
     'result': 'local team 2 - 1 away team'
 }
+
+# base_url = 'http://127.0.0.1:8000/'
+base_url = st.secrets['api_url']
 
 # session_state
 if 'clicked' not in st.session_state:
@@ -143,105 +140,129 @@ def click_button():
 def unclick_button():
     st.session_state.clicked = False
 
-
-if 'competitions' not in st.session_state:
-    st.session_state.competitions = [defaultdict()]
-
-if 'seasons' not in st.session_state:
-    st.session_state.seasons = [defaultdict()]
-
-if 'matches' not in st.session_state:
-    st.session_state.matches = [defaultdict()]
-
-base_url = 'http://127.0.0.1:8000/'
-
 @st.cache_data
 def get_competitions():
     url = base_url + 'competitions'
     competitions = requests.get(url).json()
-    print('get_competitions called', competitions, '\n')
-    st.session_state.competitions = competitions
-    # return competitions
+    # print('\nget_competitions called', competitions, '\n')
+    # st.session_state.competitions = competitions
+    return competitions
 
 # @st.cache_data
 def get_seasons():
     unclick_button()
     url = base_url + 'seasons'
-    params = {'competition_id': competition_selected['competition_id']}
+    competition_id = st.session_state.competition_selected['competition_id']
+    params = {'competition_id': competition_id}
     seasons = requests.get(url, params=params).json()
-    print('get_seasons called', seasons, '\n')
+    # print('\nget_seasons called', seasons, '\n')
     st.session_state.seasons = seasons
+    st.session_state.season_selected = st.session_state.seasons[0]
+    st.session_state.matchweek_selected = min(st.session_state.season_selected['matchweeks'])
+    get_matches(from_seasons=True)
     # return seasons
 
-def get_matches():
+def get_matches(from_seasons=True):
     unclick_button()
     url = base_url + 'matches'
-    params = {'competition_id': competition_selected['competition_id'],
-              'season_id': season_selected['season_id'],
-              'matchweek': matchweek_selected,
-              'dataset': season_selected['dataset']}
+    if from_seasons:
+        st.session_state.matchweek_selected = min(st.session_state.season_selected['matchweeks'])
+    params = {'competition_id': st.session_state.competition_selected['competition_id'],
+              'season_id': st.session_state.season_selected['season_id'],
+              'matchweek': st.session_state.matchweek_selected,
+              'dataset': st.session_state.season_selected['dataset']}
     matches = requests.get(url, params=params).json()
-    print('get_matches called', matches, '\n')
+    # print('\nget_matches called', matches, '\n')
     st.session_state.matches = matches
+    st.session_state.match_selected = st.session_state.matches[0]
+
+
+if 'competitions' not in st.session_state:
+    st.session_state.competitions = get_competitions()
+# st.write(st.session_state.competitions)
+
+if 'competition_selected' not in st.session_state:
+    st.session_state.competition_selected = st.session_state.competitions[0]
+# st.write(st.session_state.competition_selected)
+
+if 'seasons' not in st.session_state:
+    get_seasons()
+# st.write(st.session_state.seasons)
+
+if 'season_selected' not in st.session_state:
+    st.session_state.season_selected = st.session_state.seasons[0]
+# st.write(st.session_state.season_selected)
+
+if 'matchweek_selected' not in st.session_state:
+    st.session_state.matchweek_selected = min(st.session_state.season_selected['matcweeks'])
+# st.write(st.session_state.matchweek_selected)
+
+if 'matches' not in st.session_state:
+    get_matches()
+# st.write(st.session_state.matches)
+
+if 'match_selected' not in st.session_state:
+    st.session_state.match_selected = st.session_state.matches[0]
+# st.write(st.session_state.match_selected)
+
+
 
 # to select
-
-# competitions_url = 'http://127.0.0.1:8000/competitions'
-
-# competitions = get_competitions()
-get_competitions()
+# print('\n page_reloaded\n')
 
 competition_selected = st.selectbox('Select a competition',
-                                    # competitions,
                                     st.session_state.competitions,
-                                    # format_func=lambda x: x['name'],
                                     format_func=lambda x: x.get('name'),
-                                    on_change=get_seasons)
+                                    on_change=get_seasons,
+                                    key='competition_selected')
 
-st.write(f'you selected {competition_selected}')
-
-# seasons = defaultdict(defaultdict)
-# seasons = get_seasons()
+# st.write(f'you selected {st.session_state.competition_selected}')
 
 season_selected = st.selectbox('Select a season',
-                            #    seasons,
                                st.session_state.seasons,
-                            #    format_func=lambda x: x['season_name'],
                                format_func=lambda x: x.get('name'),
-                               on_change=unclick_button)
+                               on_change=get_matches,
+                               kwargs=dict(from_seasons=True),
+                               key='season_selected')
 
-st.write(f'you selected {season_selected}')
+# st.write(f'you selected {st.session_state.season_selected}')
 
 matchweek_selected = st.selectbox('Select a matchweek (round)',
-                               season_selected['matchweeks'],
+                               season_selected.get('matchweeks'),
                                format_func=lambda x: f'Round {x}',
-                               on_change=get_matches)
+                               on_change=get_matches,
+                               kwargs=dict(from_seasons=False),
+                               key='matchweek_selected')
 
-st.write(f'you selected {matchweek_selected}')
-
-# matches = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: [defaultdict()])))
+# st.write(f'you selected {st.session_state.matchweek_selected}')
 
 match_selected = st.selectbox('Select a match',
-                            #    matches[competition_selected['competition_id']][season_selected['season_id']][0],
                                st.session_state.matches,
-                            #    format_func=lambda x: x['name'],
                                format_func=lambda x: x.get('name'),
-                               on_change=unclick_button)
+                               on_change=unclick_button,
+                               key='match_selected')
 
-st.write(f'you selected {match_selected}')
+# st.write(f'you selected {st.session_state.match_selected}')
 
 # to predict
 
 pred_button = st.button('Make a prediction', on_click=click_button)
 
 if st.session_state.clicked:
+
+    outcome_mapper = {
+    1: f'{st.session_state.match_selected["home_team"]} wins',
+    0: 'teams draw',
+    -1: f'{st.session_state.match_selected["away_team"]} wins'
+    }
+
     st.markdown(f'''### The model predicts that __{outcome_mapper[prediction["outcome"]]}__ with the following probabilities:''')
 
-    fig = show_probabilities_bar(prediction)
+    fig = show_probabilities_bar(prediction, outcome_mapper.values())
 
     st.pyplot(fig)
 
-    result_button = st.button('Show results')
+    result_button = st.button('Show actual results')
 
     if result_button:
 

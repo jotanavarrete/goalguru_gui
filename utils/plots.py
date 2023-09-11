@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def show_probabilities_bar(prediction):
+def show_probabilities_bar(prediction, category_names):
     '''
     This function receives a prediction from the API:
     prediction = {
@@ -14,7 +14,7 @@ def show_probabilities_bar(prediction):
     # https://stackoverflow.com/questions/5306756/how-to-print-a-percentage-value
     # https://matplotlib.org/stable/gallery/lines_bars_and_markers/bar_label_demo.html#sphx-glr-gallery-lines-bars-and-markers-bar-label-demo-py
 
-    category_names = ['local wins', 'teams draw', 'away wins']
+    # category_names = ['local wins', 'teams draw', 'away wins']
     labels = ['probabilities']
     data = np.array(prediction['probabilities'])
     data_cum = data.cumsum()
