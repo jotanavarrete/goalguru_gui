@@ -1,144 +1,27 @@
 import streamlit as st
 import requests
-from collections import defaultdict
 from utils.plots import show_probabilities_bar
 
-'''
-# Welcome to GoalGuru ⚽!
+st.set_page_config(
+    page_title="GoalGuru",
+    page_icon="⚽",
+    menu_items={
+        'Report a bug': "https://github.com/jotanavarrete/goalguru_gui/issues",
+        'About': '''**Developers:**
+* [jotanavarrete](https://github.com/jotanavarrete)
+* [juancruzgui](https://github.com/juancruzgui)
+* [sahb7](https://github.com/sahb7)'''
+    }
+)
 
-## Fun football forecasting 🔮. By fans, for fans.
-'''
+''''''
+st.title("Welcome to GoalGuru ⚽!")
 
-# vars for selecting the leagues and teams
-# this is supposed to be given by the API
+st.header("Fun football forecasting 🔮. By fans, for fans.", divider='violet')
+''''''
 
-# API get_competitions()
-# returns a list of dictionaries with the following structure
-# competitions = [
-#     {'competition_id': 0, 'competition_name': 'Premier League'},
-#     {'competition_id': 1, 'competition_name': 'Serie A'},
-#     {'competition_id': 2, 'competition_name': 'Bundesliga'},
-#     {'competition_id': 3, 'competition_name': 'La Liga'},
-#     {'competition_id': 4, 'competition_name': 'World Cup'}
-# ]
-
-# API get_seasons(competition_id)
-# returns a list of all the available seasons for the given competition_id, with
-# the following structure
-# seasons = {
-#     0: [
-#         {'season_id': 0, 'name': '2016/2017', 'matchweeks': range(1,11), 'dataset': 'soccermatch'},
-#         {'season_id': 1, 'name': '2017/2018', 'matchweeks': range(2,25), 'dataset': 'statsbomb'}
-#         ],
-#     1: [
-#         {'season_id': 0, 'name': '2015/2016', 'matchweeks': range(3,38), 'dataset': 'soccermatch'},
-#         {'season_id': 1, 'name': '2016/2017', 'matchweeks': range(4,7), 'dataset': 'statsbomb'}
-#         ],
-#     2: [
-#         {'season_id': 0, 'name': '2015/2016', 'matchweeks': range(5,11), 'dataset': 'soccermatch'}
-#         ],
-#     3: [
-#         {'season_id': 0, 'name': '2016/2017', 'matchweeks': range(6,15), 'dataset': 'statsbomb'},
-#         {'season_id': 1, 'name': '2017/2018', 'matchweeks': range(1,11), 'dataset': 'soccermatch'}
-#         ],
-#     4: [
-#         {'season_id': 0, 'name': '2018', 'matchweeks': range(1,8), 'dataset': 'statsbomb'}
-#         ]
-# }
-
-# API get_matches(competition_id, season_id, matchweek, dataset (soccermatch or statsbomb))
-# returns a list of all the matches for the given parameters, with the following
-# structure. This method internally looks into the corresponding
-#  dataset (soccermatch or statsbomb) and fetches the list of the matches
-# matches = {
-#     0: {
-#         0: {
-#             0: [
-#                 {'match_id': 1545, 'name': 'Arsenal vs Tottenham', 'home_team': 'Arsenal', 'away_team': 'Tottenham'},
-#                 {'match_id': 6545, 'name': 'ManU vs ManCity'}
-#                 ]
-#             },
-#         1: {
-#             0: [
-#                 {'match_id': 484, 'name': 'Liverpool vs Everton'},
-#                 {'match_id': 6546, 'name': 'Burnley vs Wolves'}
-#                 ]
-#             }
-#         },
-#     1: {
-#         0: {
-#             0: [
-#                 {'match_id': 198, 'name': 'Inter vs Milan'},
-#                 {'match_id': 1154, 'name': 'Juventus vs Torino'}
-#                 ]
-#             },
-#         1: {
-#             0: [
-#                 {'match_id': 1981, 'name': 'Lazio vs Fiorentina'},
-#                 {'match_id': 62, 'name': 'Napoli vs Palermo'}
-#                 ]
-#             }
-#         },
-#     2: {
-#         0: {
-#             0: [
-#                 {'match_id': 654, 'name': 'Borussia Dortmund vs Bayern Munchen'},
-#                 {'match_id': 98, 'name': 'Hannover vs Mainz'}
-#                 ]
-#             }
-#         },
-#     3: {
-#         0: {
-#             0: [
-#                 {'match_id': 78, 'name': 'Barcelona vs Real Madrid'},
-#                 {'match_id': 14, 'name': 'Real Sociedad vs Athletic Bilbao'}
-#                 ]
-#             },
-#         1: {
-#             0: [
-#                 {'match_id': 1, 'name': 'Athletic Bilbao vs Real Madrid'},
-#                 {'match_id': 2, 'name': 'Real Sociedad vs Barcelona'}
-#                 ]
-#             }
-#         },
-#     4: {
-#         0: {
-#             0:[
-#                 {'match_id': 33, 'name': 'Argentina vs France'},
-#                 {'match_id': 55, 'name': 'Croatia vs England'}
-#                 ]
-#             }
-#         },
-# }
-
-# API predict(match_id, dataset)
-# returns a prediction with the following structure
-prediction = {
-    'outcome': 1,
-    'probabilities': [0.56, 0.24, 0.20]
-}
-
-
-# API get_result(match_id, dataset)
-# returns the result of a given match with the following structure
-# (to change for the real team names)
-
-result = {
-    'result': 'local team 2 - 1 away team'
-}
-
-# base_url = 'http://127.0.0.1:8000/'
 base_url = st.secrets['api_url']
 
-# session_state
-if 'clicked' not in st.session_state:
-    st.session_state.clicked = False
-
-def click_button():
-    st.session_state.clicked = True
-
-def unclick_button():
-    st.session_state.clicked = False
 
 @st.cache_data
 def get_competitions():
@@ -150,7 +33,6 @@ def get_competitions():
 
 # @st.cache_data
 def get_seasons():
-    unclick_button()
     url = base_url + 'seasons'
     competition_id = st.session_state.competition_selected['competition_id']
     params = {'competition_id': competition_id}
@@ -158,15 +40,16 @@ def get_seasons():
     # print('\nget_seasons called', seasons, '\n')
     st.session_state.seasons = seasons
     st.session_state.season_selected = st.session_state.seasons[0]
-    st.session_state.matchweek_selected = min(st.session_state.season_selected['matchweeks'])
+    mid_index = len(st.session_state.season_selected['matchweeks'])//2
+    st.session_state.matchweek_selected = st.session_state.season_selected['matchweeks'][mid_index]
     get_matches(from_seasons=True)
     # return seasons
 
 def get_matches(from_seasons=True):
-    unclick_button()
     url = base_url + 'matches'
     if from_seasons:
-        st.session_state.matchweek_selected = min(st.session_state.season_selected['matchweeks'])
+        mid_index = len(st.session_state.season_selected['matchweeks'])//2
+        st.session_state.matchweek_selected = st.session_state.season_selected['matchweeks'][mid_index]
     params = {'competition_id': st.session_state.competition_selected['competition_id'],
               'season_id': st.session_state.season_selected['season_id'],
               'matchweek': st.session_state.matchweek_selected,
@@ -175,15 +58,21 @@ def get_matches(from_seasons=True):
     # print('\nget_matches called', matches, '\n')
     st.session_state.matches = matches
     st.session_state.match_selected = st.session_state.matches[0]
+    predict()
 
 def predict():
-    click_button()
     url = base_url + 'predict'
     params = {'match_id': st.session_state.match_selected['match_id'],
               'dataset': st.session_state.season_selected['dataset']}
     prediction = requests.get(url, params=params).json()
     # print('\npredict called', matches, '\n')
     st.session_state.prediction = prediction
+    outcome_mapper = {
+    1: f'{st.session_state.match_selected["home_team"]} wins',
+    0: 'teams draw',
+    -1: f'{st.session_state.match_selected["away_team"]} wins'
+    }
+    st.session_state.fig = show_probabilities_bar(st.session_state.prediction, outcome_mapper.values())
 
 
 if 'competitions' not in st.session_state:
@@ -191,8 +80,7 @@ if 'competitions' not in st.session_state:
 # st.write(st.session_state.competitions)
 
 if 'competition_selected' not in st.session_state:
-    # assigned to 7 just to run locally
-    st.session_state.competition_selected = st.session_state.competitions[7]
+    st.session_state.competition_selected = st.session_state.competitions[0]
 # st.write(st.session_state.competition_selected)
 
 if 'seasons' not in st.session_state:
@@ -204,7 +92,7 @@ if 'season_selected' not in st.session_state:
 # st.write(st.session_state.season_selected)
 
 if 'matchweek_selected' not in st.session_state:
-    st.session_state.matchweek_selected = min(st.session_state.season_selected['matcweeks'])
+    st.session_state.matchweek_selected = min(st.session_state.season_selected['matchweeks'])
 # st.write(st.session_state.matchweek_selected)
 
 if 'matches' not in st.session_state:
@@ -216,12 +104,16 @@ if 'match_selected' not in st.session_state:
 # st.write(st.session_state.match_selected)
 
 if 'prediction' not in st.session_state:
-    # dummy prediction
-    st.session_state.prediction = {
-    'outcome': 1,
-    'probabilities': [0.56, 0.24, 0.20]
-    }
+    predict()
 # st.write(st.session_state.prediction)
+
+if 'fig' not in st.session_state:
+    outcome_mapper = {
+    1: f'{st.session_state.match_selected["home_team"]} wins',
+    0: 'teams draw',
+    -1: f'{st.session_state.match_selected["away_team"]} wins'
+    }
+    st.session_state.fig = show_probabilities_bar(st.session_state.prediction, outcome_mapper.values())
 
 
 
@@ -247,7 +139,7 @@ season_selected = st.selectbox('Select a season',
 
 matchweek_selected = st.selectbox('Select a matchweek (round)',
                                season_selected.get('matchweeks'),
-                               format_func=lambda x: f'Round {x}',
+                               format_func=lambda x: f'Round {x}' if x != 0 else 'Knockout Phase',
                                on_change=get_matches,
                                kwargs=dict(from_seasons=False),
                                key='matchweek_selected')
@@ -257,33 +149,30 @@ matchweek_selected = st.selectbox('Select a matchweek (round)',
 match_selected = st.selectbox('Select a match',
                                st.session_state.matches,
                                format_func=lambda x: x.get('name'),
-                               on_change=unclick_button,
+                               on_change=predict,
                                key='match_selected')
 
 # st.write(f'you selected {st.session_state.match_selected}')
 
-# to predict
 
-pred_button = st.button('Make a prediction', on_click=predict)
-
-if st.session_state.clicked:
-
-    outcome_mapper = {
+# show_prediction()
+outcome_mapper = {
     1: f'{st.session_state.match_selected["home_team"]} wins',
     0: 'teams draw',
     -1: f'{st.session_state.match_selected["away_team"]} wins'
     }
 
-    st.markdown(f'''### The model predicts that __{outcome_mapper[st.session_state.prediction["outcome"]]}__ with the following probabilities:''')
+st.markdown(f'''### The model predicts that __{outcome_mapper[st.session_state.prediction["outcome"]]}__ with the following probabilities:''')
 
-    fig = show_probabilities_bar(st.session_state.prediction, outcome_mapper.values())
+st.pyplot(st.session_state.fig)
 
-    st.pyplot(fig)
+if st.session_state.matchweek_selected == 1:
+    st.info("The predictions for the first matchweek gives always the same probabilities, because the model doesn't know past information.", icon="ℹ️")
 
-    result_button = st.button('Show actual results')
+result_button = st.button('Show actual results')
 
-    if result_button:
+if result_button:
 
-        st.markdown('''#### The actual result of the match was:''')
+    st.markdown('''#### The actual result of the match was:''')
 
-        st.markdown(f'''#### {st.session_state.match_selected["result"]}''')
+    st.markdown(f"<h2 style='text-align: center; color: black;'>{st.session_state.match_selected['result']}</h2>", unsafe_allow_html=True)

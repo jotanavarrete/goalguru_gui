@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 
 def show_probabilities_bar(prediction, category_names):
     '''
@@ -19,10 +20,13 @@ def show_probabilities_bar(prediction, category_names):
     data = np.array(prediction['probabilities'])
     data_cum = data.cumsum()
 
-    category_colors = plt.colormaps['Spectral'](
-        np.linspace(0.15, 0.9, data.shape[0]))
+    colormaps = ['PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu', 'RdYlBu',
+                 'RdYlGn', 'Spectral', 'coolwarm']
 
-    fig, ax = plt.subplots(figsize = (5,1))
+    category_colors = plt.colormaps[random.choice(colormaps)](
+        np.linspace(0.2, 0.75, data.shape[0]))
+
+    fig, ax = plt.subplots(figsize = (7, 0.75))
     ax.set_xlim(0, np.sum(data, axis=0).max())
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
@@ -33,9 +37,10 @@ def show_probabilities_bar(prediction, category_names):
         rects = ax.barh(labels, widths, left=starts,
                         label=colname, color=color)
         text_color = 'black'
-        ax.bar_label(rects, label_type='center', color=text_color, fmt='{:.0%}')
-        ax.legend(ncols=len(category_names), bbox_to_anchor=(0, 1),
-                loc='lower left', fontsize='small')
+        ax.bar_label(rects, label_type='center', color=text_color, fmt='{:.0%}',
+                     fontsize=12, fontweight='demi')
+        ax.legend(ncols=len(category_names), bbox_to_anchor=(0., 1.102, 1., .102),
+                loc='lower left', fontsize='medium', mode="expand", borderaxespad=0.)
 
     return fig
 
