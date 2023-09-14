@@ -175,4 +175,4 @@ if result_button:
 
     st.markdown('''#### The actual result of the match was:''')
 
-    st.markdown(f"<h2 style='text-align: center; color: black;'>{st.session_state.match_selected['result']}</h2>", unsafe_allow_html=True)
+    st.markdown(f"<h2 style='text-align: center;'>{st.session_state.match_selected['result']}</h2>", unsafe_allow_html=True)

@@ -30,6 +30,7 @@ def show_probabilities_bar(prediction, category_names):
     ax.set_xlim(0, np.sum(data, axis=0).max())
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
+    ax.set_frame_on(False)
 
     for i, (colname, color) in enumerate(zip(category_names, category_colors)):
         widths = data[i]
@@ -39,8 +40,11 @@ def show_probabilities_bar(prediction, category_names):
         text_color = 'black'
         ax.bar_label(rects, label_type='center', color=text_color, fmt='{:.0%}',
                      fontsize=12, fontweight='demi')
-        ax.legend(ncols=len(category_names), bbox_to_anchor=(0., 1.102, 1., .102),
+        leg = ax.legend(ncols=len(category_names), bbox_to_anchor=(0., 1.102, 1., .102),
                 loc='lower left', fontsize='medium', mode="expand", borderaxespad=0.)
+        leg.get_frame().set_alpha(.8)
+
+    fig.patch.set_alpha(0)
 
     return fig
 
@@ -49,5 +53,5 @@ if __name__ == '__main__':
         'outcome': 1,
         'probabilities': [0.56, 0.24, 0.20]
     }
-    show_probabilities_bar(prediction)
-    plt.show()
+    f = show_probabilities_bar(prediction, ['local wins', 'teams draw', 'away wins'])
+    f.show()
