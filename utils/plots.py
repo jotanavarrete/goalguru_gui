@@ -40,18 +40,29 @@ def show_probabilities_bar(prediction, category_names):
         text_color = 'black'
         ax.bar_label(rects, label_type='center', color=text_color, fmt='{:.0%}',
                      fontsize=12, fontweight='demi')
-        leg = ax.legend(ncols=len(category_names), bbox_to_anchor=(0., 1.102, 1., .102),
-                loc='lower left', fontsize='medium', mode="expand", borderaxespad=0.)
+
+        # if the text for the legend is too long, we display the legend
+        # in 1 column -> 3 rows
+        if len(''.join(category_names)) > 52:
+            ncols = 1
+            mode = None
+        else:
+            ncols = len(category_names)
+            mode = 'expand'
+
+        leg = ax.legend(ncols=ncols, bbox_to_anchor=(0., 1.102, 1., .102),
+                loc='lower center', fontsize='medium', mode=mode, borderaxespad=0.)
+
         leg.get_frame().set_alpha(.8)
 
     fig.patch.set_alpha(0)
 
     return fig
 
-if __name__ == '__main__':
-    prediction = {
-        'outcome': 1,
-        'probabilities': [0.56, 0.24, 0.20]
-    }
-    f = show_probabilities_bar(prediction, ['local wins', 'teams draw', 'away wins'])
-    f.show()
+# if __name__ == '__main__':
+#     prediction = {
+#         'outcome': 1,
+#         'probabilities': [0.56, 0.24, 0.20]
+#     }
+#     f = show_probabilities_bar(prediction, ['local wins', 'teams draw', 'away wins'])
+#     f.show()
